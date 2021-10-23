@@ -18,8 +18,8 @@ class SecureRandom {
             #if flash
                 return Bytes.ofData(untyped __global__["flash.crypto.generateRandomBytes"](length));
             #elseif js
-                untyped __js__('var Crypto = typeof crypto === "undefined" ? require("crypto") : crypto');
-                var bytes:Dynamic = untyped __js__("(Crypto.randomBytes) ? Crypto.randomBytes({0}) : Crypto.getRandomValues(new Uint8Array({0}))", length);
+                js.Syntax.code('var Crypto = typeof crypto === "undefined" ? require("crypto") : crypto');
+                var bytes:Dynamic = js.Syntax.code("(Crypto.randomBytes) ? Crypto.randomBytes({0}) : Crypto.getRandomValues(new Uint8Array({0}))", length);
                 var out = Bytes.alloc(length);
                 for (n in 0 ... length) out.set(n, bytes[n]);
                 return out;

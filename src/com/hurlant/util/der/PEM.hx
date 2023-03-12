@@ -74,10 +74,12 @@ class PEM {
             obj = DER.parse(der);
             if (Std.isOfType(obj, Sequence)) {
                 var arr = cast(obj, Sequence);
-                return new RSAKey(
-                    arr.get(0), // N
-                    arr.get(1).valueOf() // E
-                );
+                var s1:Sequence = arr.get(0);
+				var s2:Sequence = arr.get(1);
+				var int32:Int32 = new BigInteger(s2.toDER()).intValue();
+				return new RSAKey(new BigInteger(s1.toDER()), // N
+					int32 // E
+				);
             }
         }
 
@@ -98,10 +100,12 @@ class PEM {
                         seq = cast(obj, Sequence);
                         // arr[0] = modulus
                         // arr[1] = public expt.
-                        return new RSAKey(
-                            seq.get(0),
-                            seq.get(1)
-                        );
+                        var s1:Sequence = seq.get(0);
+						var s2:Sequence = seq.get(1);
+						var int32:Int32 = new BigInteger(s2.toDER()).intValue();
+						return new RSAKey(new BigInteger(s1.toDER()), // N
+							int32 // E
+						);
                     }
                 }
             }

@@ -14,6 +14,7 @@ import com.hurlant.crypto.pad.PKCS5;
 import com.hurlant.util.Error;
 
 import com.hurlant.crypto.prng.Random;
+import com.hurlant.crypto.prng.SecureRandom;
 import com.hurlant.util.Memory;
 
 import com.hurlant.util.ByteArray;
@@ -95,7 +96,7 @@ class IVMode {
             vec.writeBytes(iv);
         }
         else {
-            prng.nextBytes(vec, blockSize);
+            vec = SecureRandom.getSecureRandomBytes(blockSize);
         }
         lastIV.length = 0;
         lastIV.writeBytes(vec);

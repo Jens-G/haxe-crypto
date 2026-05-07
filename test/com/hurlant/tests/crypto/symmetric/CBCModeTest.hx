@@ -153,6 +153,27 @@ class CBCModeTest extends BaseTestCase
         }
     }
 
+    /**
+     * Issue #7: IV generation must use a cryptographically secure source, not a clock-seeded PRNG.
+     * Encrypting the same plaintext twice must produce different ciphertexts (different IVs).
+     */
+    public function test_auto_iv_is_unique():Void {
+        var key:ByteArray = Hex.toArray("2b7e151628aed2a6abf7158809cf4f3c");
+        var plaintext = "same plaintext, different IV each time";
+
+        var cbc1 = new CBCMode(new AESKey(key));
+        var pt1:ByteArray = new ByteArray();
+        pt1.writeUTFBytes(plaintext);
+        cbc1.encrypt(pt1);
+
+        var cbc2 = new CBCMode(new AESKey(key));
+        var pt2:ByteArray = new ByteArray();
+        pt2.writeUTFBytes(plaintext);
+        cbc2.encrypt(pt2);
+
+        assert(Hex.fromArray(pt1) != Hex.fromArray(pt2));
+    }
+
     public function new()
     {
         super();

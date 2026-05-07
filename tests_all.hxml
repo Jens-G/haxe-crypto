@@ -1,7 +1,7 @@
 -debug
 -cp src
 -cp test
--lib hx3compat
+-lib utest
 -main com.hurlant.tests.HaxeCryptoTests
 
 --each

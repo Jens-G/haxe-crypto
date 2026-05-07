@@ -24,6 +24,7 @@ jobs:
             apt: php-cli
           - target: java
             hxml: tests-java.hxml
+            haxelib: hxjava
           # C++ is slow (3-5 min compile via hxcpp) — uncomment to enable:
           # - target: cpp
           #   hxml: tests-cpp.hxml

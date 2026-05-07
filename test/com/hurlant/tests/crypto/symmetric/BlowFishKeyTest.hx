@@ -12,6 +12,8 @@ package com.hurlant.tests.crypto.symmetric;
 import com.hurlant.tests.*;
 
 import com.hurlant.crypto.symmetric.BlowFishKey;
+import com.hurlant.crypto.symmetric.mode.ECBMode;
+import com.hurlant.crypto.pad.NullPad;
 import com.hurlant.util.Hex;
 
 import com.hurlant.util.ByteArray;
@@ -142,6 +144,25 @@ class BlowFishKeyTest extends BaseTestCase {
             out = Hex.fromArray(pt).toUpperCase();
             assert(pts[i], out);
         }
+    }
+
+    /**
+     * Issue #8: BlowFish must encrypt all blocks, not just the first one.
+     * Verifies that ECBMode correctly iterates over all 8-byte BlowFish blocks.
+     * Test vectors from http://www.schneier.com/code/vectors.txt, key=0000000000000000:
+     *   pt=0000000000000000 → ct=4EF997456198DD78
+     *   pt=FFFFFFFFFFFFFFFF → ct=014933E0CDAFF6E4
+     */
+    public function test_ecb_multiblock():Void {
+        var key = Hex.toArray("0000000000000000");
+        var pt  = Hex.toArray("0000000000000000FFFFFFFFFFFFFFFF");
+        var expectedCt = "4EF997456198DD78014933E0CDAFF6E4";
+
+        var ecb = new ECBMode(new BlowFishKey(key), new NullPad());
+        ecb.encrypt(pt);
+        assert(expectedCt, Hex.fromArray(pt).toUpperCase());
+        ecb.decrypt(pt);
+        assert("0000000000000000FFFFFFFFFFFFFFFF", Hex.fromArray(pt).toUpperCase());
     }
 }
 

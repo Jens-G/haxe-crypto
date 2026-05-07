@@ -1,7 +1,9 @@
 package com.hurlant.tests.crypto;
 
 import com.hurlant.crypto.encoding.binary.BinaryEncodings;
+import com.hurlant.util.Base64;
 import com.hurlant.util.Hex;
+import com.hurlant.util.ByteArray;
 import com.hurlant.crypto.Crypto;
 import com.hurlant.tests.BaseTestCase;
 
@@ -56,5 +58,30 @@ class CryptoTest extends BaseTestCase {
                 assertEquals(str, decodedStr);
             }
         }
+    }
+
+    /**
+     * Issue #14: AES-256 must correctly encrypt and decrypt strings longer than one block (16 bytes).
+     * Tests encrypt→decrypt roundtrip directly and via a Base64 intermediary, as in the bug report.
+     */
+    public function test_simple_aes256_multiblock_roundtrip():Void {
+        var key = Hex.toArray("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+        var plaintext = "hello, this string is longer than one AES block of sixteen bytes!";
+
+        // direct roundtrip
+        var cipher = Crypto.getCipher("simple-aes256", key);
+        var data:ByteArray = Crypto.getCharset("utf-8").encode(plaintext);
+        cipher.encrypt(data);
+        cipher.decrypt(data);
+        assertEquals(plaintext, Crypto.getCharset("utf-8").decode(data));
+
+        // roundtrip via Base64, matching the usage pattern from the bug report
+        var cipher2 = Crypto.getCipher("simple-aes256", key);
+        var data2:ByteArray = Crypto.getCharset("utf-8").encode(plaintext);
+        cipher2.encrypt(data2);
+        var encoded = Base64.encodeByteArray(data2);
+        var decoded = Base64.decodeToByteArray(encoded);
+        cipher2.decrypt(decoded);
+        assertEquals(plaintext, Crypto.getCharset("utf-8").decode(decoded));
     }
 }

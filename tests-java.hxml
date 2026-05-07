@@ -1,0 +1,8 @@
+-debug
+-cp src
+-cp test
+-lib utest
+-main com.hurlant.tests.HaxeCryptoTests
+
+-java tests.java
+-cmd java -jar tests.java/HaxeCryptoTests-Debug.jar

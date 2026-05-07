@@ -1,6 +1,6 @@
 # Haxe Cryptography Library
 
-[![Build Status](https://travis-ci.org/soywiz/haxe-crypto.svg?branch=master)](https://travis-ci.org/soywiz/haxe-crypto)
+[![Build Status](https://github.com/Jens-G/haxe-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/Jens-G/haxe-crypto/actions/workflows/ci.yml)
 
 Forked from:
 * [https://github.com/timkurvers/as3-crypto](https://github.com/timkurvers/as3-crypto)

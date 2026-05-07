@@ -99,7 +99,7 @@ class PEM {
                         // arr[1] = public expt.
                         return new RSAKey(
                             seq.get(0),
-                            seq.get(1)
+                            seq.get(1).valueOf()
                         );
                     }
                 }

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+  pull_request:
+
+jobs:
+  test:
+    name: Test (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: js
+            hxml: tests.hxml
+          - target: neko
+            hxml: tests-neko.hxml
+          - target: php
+            hxml: tests-php.hxml
+            apt: php-cli
+          - target: java
+            hxml: tests-java.hxml
+          # C++ is slow (3-5 min compile via hxcpp) — uncomment to enable:
+          # - target: cpp
+          #   hxml: tests-cpp.hxml
+          #   haxelib: hxcpp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: latest
+
+      - name: Install utest
+        run: haxelib install utest
+
+      - name: Install system dependencies
+        if: matrix.apt
+        run: sudo apt-get install -y ${{ matrix.apt }}
+
+      - name: Install haxelib dependencies
+        if: matrix.haxelib
+        run: haxelib install ${{ matrix.haxelib }}
+
+      - name: Run tests
+        run: haxe ${{ matrix.hxml }}

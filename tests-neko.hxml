@@ -1,0 +1,8 @@
+-debug
+-cp src
+-cp test
+-lib utest
+-main com.hurlant.tests.HaxeCryptoTests
+
+-neko tests.n
+-cmd neko tests.n

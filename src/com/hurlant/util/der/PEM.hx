@@ -12,12 +12,15 @@ package com.hurlant.util.der;
 import haxe.Int32;
 import com.hurlant.crypto.rsa.RSAKey;
 import com.hurlant.util.Base64;
+import com.hurlant.util.der.ByteString;
 
 import com.hurlant.util.ByteArray;
 
 class PEM {
     private static inline var RSA_PRIVATE_KEY_HEADER:String = "-----BEGIN RSA PRIVATE KEY-----";
     private static inline var RSA_PRIVATE_KEY_FOOTER:String = "-----END RSA PRIVATE KEY-----";
+    private static inline var PRIVATE_KEY_HEADER:String = "-----BEGIN PRIVATE KEY-----";
+    private static inline var PRIVATE_KEY_FOOTER:String = "-----END PRIVATE KEY-----";
     private static inline var RSA_PUBLIC_KEY_HEADER:String = "-----BEGIN RSA PUBLIC KEY-----";
     private static inline var RSA_PUBLIC_KEY_FOOTER:String = "-----END RSA PUBLIC KEY-----";
     private static inline var PUBLIC_KEY_HEADER:String = "-----BEGIN PUBLIC KEY-----";
@@ -34,25 +37,55 @@ class PEM {
      * @return
      */
     public static function readRSAPrivateKey(str:String):RSAKey {
+        // Try PKCS#1 format: BEGIN RSA PRIVATE KEY
         var der:ByteArray = extractBinary(RSA_PRIVATE_KEY_HEADER, RSA_PRIVATE_KEY_FOOTER, str);
-        if (der == null) return null;
-        var obj = DER.parse(der);
-        if (Std.isOfType(obj, Sequence)) {
-            var arr = cast(obj, Sequence);
-            // arr[0] is Version. should be 0. should be checked. shoulda woulda coulda.
-            return new RSAKey(
-                arr.get(1), // N
-                arr.get(2).valueOf(), // E
-                arr.get(3), // D
-                arr.get(4), // P
-                arr.get(5), // Q
-                arr.get(6), // DMP1
-                arr.get(7), // DMQ1
-                arr.get(8)
-            );
+        if (der != null) {
+            var obj = DER.parse(der);
+            if (Std.isOfType(obj, Sequence)) {
+                var arr = cast(obj, Sequence);
+                // arr[0] is Version. should be 0.
+                return new RSAKey(
+                    arr.get(1), // N
+                    arr.get(2).valueOf(), // E
+                    arr.get(3), // D
+                    arr.get(4), // P
+                    arr.get(5), // Q
+                    arr.get(6), // DMP1
+                    arr.get(7), // DMQ1
+                    arr.get(8)
+                );
+            }
+            throw new Error('Don\'t know how to handle $obj');
         }
-        // dunno
-        throw new Error('Don\'t know how to handle $obj');
+
+        // Try PKCS#8 unencrypted format: BEGIN PRIVATE KEY
+        // Structure: SEQUENCE { INTEGER 0, SEQUENCE { OID, NULL }, OCTET STRING { RSAPrivateKey } }
+        der = extractBinary(PRIVATE_KEY_HEADER, PRIVATE_KEY_FOOTER, str);
+        if (der != null) {
+            var obj = DER.parse(der);
+            if (Std.isOfType(obj, Sequence)) {
+                var outer = cast(obj, Sequence);
+                var payload = cast(outer.get(2), ByteString);
+                payload.data.position = 0;
+                var inner = DER.parse(payload.data);
+                if (Std.isOfType(inner, Sequence)) {
+                    var arr = cast(inner, Sequence);
+                    return new RSAKey(
+                        arr.get(1), // N
+                        arr.get(2).valueOf(), // E
+                        arr.get(3), // D
+                        arr.get(4), // P
+                        arr.get(5), // Q
+                        arr.get(6), // DMP1
+                        arr.get(7), // DMQ1
+                        arr.get(8)
+                    );
+                }
+            }
+            throw new Error('Don\'t know how to handle PKCS#8 key');
+        }
+
+        return null;
     }
 
 

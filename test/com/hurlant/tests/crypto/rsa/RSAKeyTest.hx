@@ -118,6 +118,37 @@ class RSAKeyTest extends BaseTestCase {
         assert(txt, txt2);
     }
 
+    /**
+     * Issue #22: PEM.readRSAPrivateKey must also accept PKCS#8 unencrypted keys
+     * (BEGIN PRIVATE KEY), which is the default output of OpenSSL 3.x.
+     * Key generated with: openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:512
+     */
+    public function test_pem_pkcs8():Void {
+        var pem = (
+            "-----BEGIN PRIVATE KEY-----\n" +
+            "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEA2FFySdkG8j+UBpoP\n" +
+            "ud6Sq3oh0cfYh9Hmrb6jNGDpdSnGYOCML01856z3U1C63aDSYUe7OVey64VejhTc\n" +
+            "5LqTjQIDAQABAkBjetk/YuJR57EwdAtFZDk5SNpiujA3De2y+1fcz7CtYyciVhWP\n" +
+            "Puf4Gg5qfkO+IaSfVpqnsbyeM5agZ01YkpgVAiEA9g0HaDVVy6e9hku3STo8m6Ws\n" +
+            "XfeZYgtJ87ypGjJ5eNsCIQDhEKRZ8cInK+xcv/juYszLMwE7jNgGSEXopd1LDRs9\n" +
+            "twIhAJO8IvRpAci0QNG/6J8pPnbeNO5+2jPKP27/mjFGmTT9AiB9z4rACMfqk8AV\n" +
+            "/O5PfAVVFZb7zfi4UlBaA9YXbSUsMwIhAKythjFDLOJDqoYKdD0YoTMn9u3sJkrV\n" +
+            "2TTjEm6/7hJr\n" +
+            "-----END PRIVATE KEY-----"
+        );
+        var rsa = PEM.readRSAPrivateKey(pem);
+        assert(rsa != null);
+
+        var txt = "hello";
+        var src = Hex.toArray(Hex.fromString(txt));
+        var dst = new ByteArray();
+        var dst2 = new ByteArray();
+        rsa.encrypt(src, dst, src.length);
+        rsa.decrypt(dst, dst2, dst.length);
+        var txt2 = Hex.toString(Hex.fromArray(dst2));
+        assert(txt, txt2);
+    }
+
     /*
     public function test_adobeSample() {
         var myPEMPublicKeyString = (
